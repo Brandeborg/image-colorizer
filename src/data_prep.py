@@ -142,7 +142,15 @@ class ImageDataset(Dataset):
         """
         return self._len
     
-    def __getitem__(self, index) -> Any:
+    def __getitem__(self, index: int) -> Any:
+        """Get item at index `index`
+
+        Args:
+            index (int): An index
+
+        Returns:
+            Any: _description_
+        """
         if torch.is_tensor(index):
             # really just "toscalar"
             index = index.tolist()
@@ -163,6 +171,8 @@ class ImageDataset(Dataset):
         return input, target
     
 def create_dataloader():
+    """Creates a dataset with input and target images, and wraps it in a dataloader.
+    """
     def crop_left(image):
         return transforms.functional.crop(image, 0, 0, 1600, 1040)
     
@@ -170,13 +180,6 @@ def create_dataloader():
                                     transforms.Resize(1040, antialias=True)])
     dataset: ImageDataset = ImageDataset(f"dataset{sep}input_bw", f"dataset{sep}target", transform)
     return torch.utils.data.DataLoader(dataset, batch_size=57, shuffle=False)
-
-    inputs, targets = next(iter(dataloader))
-    input = targets[2]
-    print(input)
-    input = input.permute(1,2,0)
-    #plt.imshow(input)
-    #plt.show()
 
 def test_dataloader():
     dataloader = create_dataloader()
