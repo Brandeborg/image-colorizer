@@ -31,6 +31,10 @@ class ImageDataset(Dataset):
             """Create a mapping from index to file name, to be used in __getitem__. 
             File names include path from (not including) root_dir.
 
+            NOTE: This consumes more memory, as the dataset grows. Consider restructuring dataset dirs so it is 
+            simply: 0/target.png, 0/input.png, 1/target.png, 1/input.png
+            This would remove the need for this function as the files are already indexed via names.
+
             Args:
                 root_dir (str): dir in which to recursively look for filename
 
