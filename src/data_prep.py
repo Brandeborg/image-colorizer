@@ -48,7 +48,7 @@ def to_BW(grayscale, out_img_path: str):
     return bw_image
 
 def create_input_data(target_dir: str) -> None:
-    """Create input image files (grayscale) from target data (colored)
+    """Create input image files (grayscale and bw) from target data (colored)
 
     Args:
         target_dir
@@ -64,7 +64,6 @@ def create_input_data(target_dir: str) -> None:
             grayscale = to_grayscale(in_path, out_path)
 
             out_path = re.sub("target", "input_bw", in_path)
-            print(out_path)
             to_BW(grayscale, out_path)
 
 def main():
