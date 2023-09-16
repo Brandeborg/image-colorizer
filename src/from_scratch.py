@@ -34,14 +34,14 @@ def training_loop():
     # with torch.nn.Parameter) which are members of the model."
     # https://pytorch.org/tutorials/beginner/pytorch_with_examples.html#pytorch-optim
     criterion = torch.nn.MSELoss(reduction='sum')
-    optimizer = torch.optim.SGD(model.parameters(), lr=1e-6)
+    optimizer = torch.optim.SGD(model.parameters(), lr=1e-8)
 
     # loops through batches, so input and target are really
     # lists of inputs and targets
 
     iters = 0
     for input, target in iter(dataloader):
-        if iters == 500:
+        if iters == 1000:
             break
 
         # move data to GPU
@@ -60,14 +60,24 @@ def training_loop():
         iters += 1
 
     inputs, targets = next(iter(dataloader))
-    input = inputs[0].to(device)
+    input = inputs[1].to(device)
 
-    print (input)
-    output = (model(input) * 255).detach().to(torch.uint8).cpu()
-    print(output)
-    output = output.permute(1,2,0)
+    output = (model(input) * 255).detach().to(torch.uint8)
 
+
+    # result
+    input = input.permute(1,2,0).cpu()
+    plt.subplot(1,3,1)
+    plt.imshow(input, cmap="gray")
+
+    output = output.permute(1,2,0).cpu()
+    plt.subplot(1,3,2)
     plt.imshow(output)
+    
+    target = targets[1].permute(1,2,0)
+    plt.subplot(1,3,3)
+    plt.imshow(target)
+
     plt.show()
 
 training_loop()
