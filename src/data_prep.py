@@ -158,6 +158,10 @@ class ImageDataset(Dataset):
         input_path = os.path.join(self.input_dir, self._idx2file_map[index])
         target_path = os.path.join(self.target_dir, self._idx2file_map[index])
 
+        # read_image() returns tensor with uint8 values
+        # models expect float32 values
+        # this is handled later by passing transforms.ConvertImageDtype(dtype=torch.float32))
+        # to Dataset class.
         input = io.read_image(input_path)
         target = io.read_image(target_path)
 
@@ -168,7 +172,7 @@ class ImageDataset(Dataset):
             input = self.transform(input)
             target = self.transform(target)
 
-        return input, target
+        return (input, target)
     
 def create_dataloader():
     """Creates a dataset with input and target images, and wraps it in a dataloader.
@@ -176,10 +180,13 @@ def create_dataloader():
     def crop_left(image):
         return transforms.functional.crop(image, 0, 0, 1600, 1040)
     
+    # ConvertImageDtype() also scales the numbers to be between 0. and 1.
     transform = transforms.Compose([transforms.Lambda(crop_left),
-                                    transforms.Resize(1040, antialias=True)])
+                                    transforms.Resize(1040, antialias=True),
+                                    transforms.ConvertImageDtype(dtype=torch.float32)])
+                                    
     dataset: ImageDataset = ImageDataset(f"dataset{sep}input_bw", f"dataset{sep}target", transform)
-    return torch.utils.data.DataLoader(dataset, batch_size=57, shuffle=False)
+    return torch.utils.data.DataLoader(dataset, batch_size=2, shuffle=False)
 
 def test_dataloader():
     dataloader = create_dataloader()
