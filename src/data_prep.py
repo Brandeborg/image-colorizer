@@ -5,8 +5,8 @@ import os
 from pyparsing import Any
 
 import torch
-from torchvision import datasets, transforms, io
-from torch.utils.data import Dataset
+from torchvision import transforms, io
+from torch.utils.data import Dataset, random_split, DataLoader
 
 import matplotlib.pyplot as plt
 
@@ -173,30 +173,32 @@ class ImageDataset(Dataset):
             target = self.transform(target)
 
         return (input, target)
-    
-def create_dataloader():
-    """Creates a dataset with input and target images, and wraps it in a dataloader.
+
+def create_datasets(splits: tuple = (0.9, 0.09, 0.01), device="cuda") -> tuple:
+    """Creates dataset with an applied transformation.
+
+    Args:
+        splits (tuple): A size 3 tuple of numbers summing to 1 (train, test, validation). Defaults to (0.9,0.09,0.01).
+
+    Returns tuple containing (train, test, validation) splits
     """
+
+    if sum(splits) != 1:
+        raise Exception("Splits should sum to 1.")
+    
     def crop_left(image):
         return transforms.functional.crop(image, 0, 0, 1600, 1040)
-    
     # ConvertImageDtype() also scales the numbers to be between 0. and 1.
     transform = transforms.Compose([transforms.Lambda(crop_left),
                                     transforms.Resize(1040, antialias=True),
                                     transforms.ConvertImageDtype(dtype=torch.float32)])
-                                    
+    
     dataset: ImageDataset = ImageDataset(f"dataset{sep}input_bw", f"dataset{sep}target", transform)
-    return torch.utils.data.DataLoader(dataset, batch_size=2, shuffle=False)
 
-def test_dataloader():
-    dataloader = create_dataloader()
+    seed = torch.Generator(device=device).manual_seed(42)
+    train, test, validation = random_split(dataset, splits, generator=seed)
 
-    inputs, targets = next(iter(dataloader))
-    input = targets[2]
-    print(input)
-    input = input.permute(1,2,0)
-    #plt.imshow(input)
-    #plt.show()
+    return train, test, validation
 
 def main():
     create_input_data(f"dataset{sep}target")

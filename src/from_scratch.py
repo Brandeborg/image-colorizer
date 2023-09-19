@@ -3,6 +3,8 @@ import torch
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
+from torch.utils.data import DataLoader
+
 class ImageColorizerModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -27,7 +29,10 @@ def training_loop():
     model = ImageColorizerModel()
 
     # load data
-    dataloader = data_prep.create_dataloader()
+    train, test, _val = data_prep.create_datasets(device=device)
+
+    # wrap train split in dataloader
+    dataloader = DataLoader(train, batch_size=2, shuffle=False)
 
     # "Construct our loss function and an Optimizer. The call to model.parameters()
     # in the SGD constructor will contain the learnable parameters (defined 
