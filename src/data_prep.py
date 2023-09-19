@@ -174,11 +174,12 @@ class ImageDataset(Dataset):
 
         return (input, target)
 
-def create_datasets(splits: tuple = (0.9, 0.09, 0.01), device="cuda") -> tuple:
+def create_datasets(splits: tuple = (0.9, 0.09, 0.01), device: str = "cuda") -> tuple:
     """Creates dataset with an applied transformation.
 
     Args:
         splits (tuple): A size 3 tuple of numbers summing to 1 (train, test, validation). Defaults to (0.9,0.09,0.01).
+        device (str): Processing device on which seed Generator runs. Defaults to 'cuda'.
 
     Returns tuple containing (train, test, validation) splits
     """
