@@ -46,7 +46,7 @@ def training_loop():
 
     iters = 0
     for input, target in iter(dataloader):
-        if iters == 1000:
+        if iters == 1:
             break
 
         # move data to GPU
@@ -71,6 +71,11 @@ def training_loop():
 
 
     # result
+    display_result(input, output, targets[1])
+
+
+def display_result(input, output, target):
+    # result
     input = input.permute(1,2,0).cpu()
     plt.subplot(1,3,1)
     plt.imshow(input, cmap="gray")
@@ -79,7 +84,7 @@ def training_loop():
     plt.subplot(1,3,2)
     plt.imshow(output)
     
-    target = targets[1].permute(1,2,0)
+    target = target.permute(1,2,0)
     plt.subplot(1,3,3)
     plt.imshow(target)
 
