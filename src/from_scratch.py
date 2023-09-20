@@ -1,4 +1,5 @@
 import data_prep
+import eval
 import torch 
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
@@ -46,7 +47,7 @@ def training_loop():
 
     iters = 0
     for input, target in iter(dataloader):
-        if iters == 1:
+        if iters == 10:
             break
 
         # move data to GPU
@@ -56,6 +57,7 @@ def training_loop():
         # compute loss
         loss = criterion(target_pred, target)
         print(loss)
+        print(eval.accuracy(target_pred, target))
 
         # Zero gradients, perform a backward pass, and update the weights.
         optimizer.zero_grad()
@@ -65,14 +67,13 @@ def training_loop():
         iters += 1
 
     inputs, targets = next(iter(dataloader))
-    input = inputs[1].to(device)
+    input = inputs[0].to(device)
 
     output = (model(input) * 255).detach().to(torch.uint8)
 
 
     # result
-    display_result(input, output, targets[1])
-
+    display_result(input, output, targets[0])
 
 def display_result(input, output, target):
     # result
