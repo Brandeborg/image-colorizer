@@ -11,8 +11,12 @@ class ImageColorizerModel(torch.nn.Module):
         super().__init__()
 
         self.conv_layers = torch.nn.ModuleList([
-            torch.nn.Conv2d(1, 3, (5,2), padding="same"),
-            torch.nn.Conv2d(3, 3, (3,2), padding="same")])
+            torch.nn.Conv2d(1, 3, (3,3), padding="same"),
+            torch.nn.Conv2d(3, 3, (7,7), padding="same"),
+            torch.nn.Conv2d(3, 3, (5,5), padding="same"),
+            torch.nn.Conv2d(3, 3, (5,5), padding="same"),
+            torch.nn.Conv2d(3, 3, (5,5), padding="same"),
+            torch.nn.Conv2d(3, 3, (3,3), padding="same")])
 
     def forward(self, x):
         for conv_layer in self.conv_layers:
@@ -47,7 +51,7 @@ def training_loop():
 
     iters = 0
     for input, target in iter(dataloader):
-        if iters == 10:
+        if iters == 10000:
             break
 
         # move data to GPU
