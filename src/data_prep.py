@@ -188,10 +188,12 @@ def create_datasets(splits: tuple = (0.9, 0.09, 0.01), device: str = "cuda") -> 
         raise Exception("Splits should sum to 1.")
     
     def crop_left(image):
-        return transforms.functional.crop(image, 0, 0, 1200, 760)
+        # input dimensions need to match stride, channel sizes, dilation, etc.
+        # with this model, dimensions being divisible by 64 works
+        return transforms.functional.crop(image, 0, 0, 1152, 704)
     # ConvertImageDtype() also scales the numbers to be between 0. and 1.
     transform = transforms.Compose([transforms.Lambda(crop_left),
-                                    transforms.Resize(760, antialias=True),
+                                    transforms.Resize(704, antialias=True),
                                     transforms.ConvertImageDtype(dtype=torch.float32)])
     
     dataset: ImageDataset = ImageDataset(f"dataset{sep}input_bw", f"dataset{sep}target", transform)
