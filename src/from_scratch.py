@@ -82,10 +82,11 @@ def training_loop(num_epochs=3):
     model = ImageColorizerModel()
 
     # load data
-    train, test, _val = data_prep.create_datasets(device=device)
+    train, _test, val = data_prep.create_datasets(device=device)
 
-    # wrap train split in dataloader
-    dataloader = DataLoader(train, batch_size=4, shuffle=False)
+    # wrap train and test split in dataloader
+    train_dataloader = DataLoader(train, batch_size=8, shuffle=False)
+    eval_dataloader = DataLoader(val, batch_size=8, shuffle=False)
 
     # "Construct our loss function and an Optimizer. The call to model.parameters()
     # in the SGD constructor will contain the learnable parameters (defined 
@@ -97,11 +98,17 @@ def training_loop(num_epochs=3):
     # loops through batches, so input and target are really
     # lists of inputs and targets
 
-    iters = 0
+    print("Training")
+    batch_num = 0
     for epoch in range(num_epochs):
-        for input, target in iter(dataloader):
-            # if iters == 10:
-            #    break
+        for input, target in iter(train_dataloader):
+            batch_num += 1
+            print(f"Batch {batch_num} / {len(train_dataloader)}, Epoch {epoch+1} / {num_epochs}", end="\r")
+            
+            if batch_num % 10 == 0:
+               print()
+               metrics = eval.eval_model(model, eval_dataloader, criterion, device)
+               print(metrics)
 
             # move data to GPU
             input, target = input.to(device), target.to(device)
@@ -109,17 +116,15 @@ def training_loop(num_epochs=3):
 
             # compute loss
             loss = criterion(target_pred, target)
-            print(loss)
-            print(eval.accuracy(target_pred, target))
 
             # Zero gradients, perform a backward pass, and update the weights.
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-            iters += 1
+        
 
-    inputs, targets = next(iter(dataloader))
+    inputs, targets = next(iter(train_dataloader))
     input = inputs[0].to(device).unsqueeze(0)
 
     output = (model(input) * 255).detach().to(torch.uint8)
