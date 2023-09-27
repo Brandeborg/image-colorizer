@@ -41,6 +41,7 @@ def eval_model(model: Module, eval_dataloader: DataLoader, criterion, device: st
     Returns:
         dict: A dict containing loss and accuracy
     """
+    # set to eval mode
     model.eval()
 
     metrics = {"eval_loss": 0, "eval_accuracy": 0}
@@ -48,6 +49,7 @@ def eval_model(model: Module, eval_dataloader: DataLoader, criterion, device: st
     batch_num = 0
 
     print("Evaluating dataset")
+    # using no_grad scope becuase gradients don't need to be calculated for eval, saves time
     with torch.no_grad():
         for input, target in iter(eval_dataloader):
             batch_num += 1
@@ -59,6 +61,8 @@ def eval_model(model: Module, eval_dataloader: DataLoader, criterion, device: st
 
             metrics["eval_loss"] += criterion(target_pred, target)
             
+            # accuracy function doesn't do batches right now, 
+            # so loop through batch
             for sample_input, sample_target in zip(input, target):
                 sample_target_pred = model(torch.unsqueeze(sample_input, 0))
 
@@ -67,5 +71,6 @@ def eval_model(model: Module, eval_dataloader: DataLoader, criterion, device: st
     metrics["eval_loss"] = metrics["eval_loss"].item() / len(eval_dataloader)
     metrics["eval_accuracy"] = metrics["eval_accuracy"] / len(eval_dataloader) * eval_dataloader.batch_size
 
+    # back to training mode, in case the eval step was done between epochs
     model.train()
     return metrics
