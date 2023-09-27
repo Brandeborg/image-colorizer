@@ -1,7 +1,7 @@
-from from_scratch import ImageColorizerModel
+from models import CNNImageColorizerModel
 import torch
 
-def save_model(model: ImageColorizerModel, dir_path: str):
+def save_model(model: CNNImageColorizerModel, dir_path: str):
     """Saves state_dict of ImageColorizerModel at dir_path
 
     Args:
@@ -16,6 +16,6 @@ def load_model(dir_path: str):
     Args:
         dir_path (str): Where the model is located
     """
-    model = ImageColorizerModel()
+    model = CNNImageColorizerModel()
     model.load_state_dict(torch.load(dir_path))
     model.eval()
