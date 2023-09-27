@@ -1,12 +1,6 @@
-import data_prep
-import eval
 import torch 
-import util
 import torch.nn.functional as F
 import torch.nn as nn
-import matplotlib.pyplot as plt
-
-from torch.utils.data import DataLoader
 
 class CNNImageColorizerModel(torch.nn.Module):
     """
