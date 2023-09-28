@@ -6,7 +6,7 @@ from pyparsing import Any
 
 import torch
 from torchvision import transforms, io
-from torch.utils.data import Dataset, random_split, DataLoader
+from torch.utils.data import Dataset, random_split
 
 import matplotlib.pyplot as plt
 
@@ -22,7 +22,7 @@ def to_grayscale(in_img_path: str, out_img_path: str) -> None:
     # extract dir parts of path to output file
     dir_path = sep.join(out_img_path.split(sep)[:-1])
     
-    # make dirs of they do not exist
+    # make dirs if they do not exist
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
 

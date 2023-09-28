@@ -4,9 +4,15 @@ import torch
 import util
 import models
 
-import matplotlib.pyplot as plt
+import os
+from os import sep
+from torch.utils.data import DataLoader, Subset
 
-from torch.utils.data import DataLoader
+from dotenv import load_dotenv
+load_dotenv()
+
+CNN_MODEL = os.getenv("CNN_MODEL")
+MODELS_DIR = os.getenv("MODELS_DIR")
 
 
 def training_loop(ModelType, save_dir, num_epochs=3):
@@ -20,8 +26,9 @@ def training_loop(ModelType, save_dir, num_epochs=3):
     # load data
     train, _test, val = data_prep.create_datasets(device=device)
 
-    # wrap train and test split in dataloader
+    # wrap train and val split in dataloader
     train_dataloader = DataLoader(train, batch_size=8, shuffle=False)
+    val = Subset(val, range(50))
     eval_dataloader = DataLoader(val, batch_size=8, shuffle=False)
 
     # "Construct our loss function and an Optimizer. The call to model.parameters()
@@ -41,10 +48,11 @@ def training_loop(ModelType, save_dir, num_epochs=3):
             batch_num += 1
             print(f"Batch {batch_num} / {len(train_dataloader)}, Epoch {epoch+1} / {num_epochs}", end="\r")
             
-            if batch_num % 10 == 0:
+            if batch_num % 2 == 0:
                print()
                metrics = eval.eval_model(model, eval_dataloader, criterion, device)
                print(metrics)
+               break
 
             # move data to GPU
             input, target = input.to(device), target.to(device)
@@ -60,35 +68,8 @@ def training_loop(ModelType, save_dir, num_epochs=3):
 
     util.save_model(model, save_dir)
 
-    # TODO: move somewhere else
-    # passes example through trained model and illustrates result
-    inputs, targets = next(iter(train_dataloader))
-    input = inputs[0].to(device).unsqueeze(0)
-
-    output = (model(input) * 255).detach().to(torch.uint8)
-
-    # result
-    display_result(input, output, targets[0])
-
-def display_result(input, output, target):
-    # result
-    input = input[0].permute(1,2,0).cpu()
-    plt.subplot(1,3,1)
-    plt.imshow(input, cmap="gray")
-
-    output = output[0].permute(1,2,0).cpu()
-    plt.subplot(1,3,2)
-    plt.imshow(output)
-    
-    target = target.permute(1,2,0)
-    plt.subplot(1,3,3)
-    plt.imshow(target)
-
-    plt.show()
-
-
 def main():
-    training_loop(models.CNNImageColorizerModel, save_dir="cnn_image_colorizer_from_scratch")
+    training_loop(models.CNNImageColorizerModel, save_dir=f"{MODELS_DIR}{sep}{CNN_MODEL}", num_epochs=1)
 
 if __name__ == "__main__":
     main()

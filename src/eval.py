@@ -1,9 +1,26 @@
 
+import data_prep
+import util
+
+import os
+from os import sep
+
 import torch
 from torch import Tensor, uint8
 from torch.nn import Module
-
 from torch.utils.data import DataLoader
+
+import matplotlib.pyplot as plt
+
+from dotenv import load_dotenv
+load_dotenv()
+
+# set device
+device = "cuda" if torch.cuda.is_available() else "cpu"
+torch.set_default_device(device)
+
+CNN_MODEL = os.getenv("CNN_MODEL")
+MODELS_DIR = os.getenv("MODELS_DIR")
 
 def accuracy(pred: Tensor, target: Tensor) -> float:
     """Calculate accuracy between prediction image and target image, 
@@ -41,7 +58,7 @@ def eval_model(model: Module, eval_dataloader: DataLoader, criterion, device: st
     Returns:
         dict: A dict containing loss and accuracy
     """
-    # set to eval mode
+    # set model to eval mode
     model.eval()
 
     metrics = {"eval_loss": 0, "eval_accuracy": 0}
@@ -69,8 +86,49 @@ def eval_model(model: Module, eval_dataloader: DataLoader, criterion, device: st
                 metrics["eval_accuracy"] += accuracy(sample_target_pred, sample_target)
 
     metrics["eval_loss"] = metrics["eval_loss"].item() / len(eval_dataloader)
-    metrics["eval_accuracy"] = metrics["eval_accuracy"] / len(eval_dataloader) * eval_dataloader.batch_size
+    metrics["eval_accuracy"] = metrics["eval_accuracy"] / (len(eval_dataloader) * eval_dataloader.batch_size)
 
     # back to training mode, in case the eval step was done between epochs
     model.train()
     return metrics
+
+def display_result(input, output, target):
+    # result
+    input = input[0].permute(1,2,0).cpu()
+    plt.subplot(1,3,1)
+    plt.imshow(input, cmap="gray")
+
+    output = output[0].permute(1,2,0).cpu()
+    plt.subplot(1,3,2)
+    plt.imshow(output)
+    
+    target = target.permute(1,2,0)
+    plt.subplot(1,3,3)
+    plt.imshow(target)
+
+    plt.show()
+
+def test_img():
+    # passes example through trained model and illustrates result
+    # load data
+    _train, test, _val = data_prep.create_datasets(device=device)
+    model = util.load_model(f"{MODELS_DIR}{sep}{CNN_MODEL}")
+
+    # wrap test split in dataloader
+    test_dataloader = DataLoader(test, batch_size=2, shuffle=False)
+
+    inputs, targets = next(iter(test_dataloader))
+
+    # model expects batches on GPU, so move to GPU and unsqueeze("wrap in batch")
+    input = inputs[1].to(device).unsqueeze(0)
+
+    output = (model(input) * 255).detach().to(torch.uint8)
+
+    # result
+    display_result(input, output, targets[1])
+
+def main():
+    test_img()
+
+if __name__ == "__main__":
+    main()
