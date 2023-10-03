@@ -68,7 +68,7 @@ def training_loop(ModelType, save_dir, num_epochs=3):
     # with torch.nn.Parameter) which are members of the model."
     # https://pytorch.org/tutorials/beginner/pytorch_with_examples.html#pytorch-optim
     criterion = torch.nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
     # calculate training_steps and choose 5% warmup steps
     num_training_steps = num_epochs * len(train_dataloader)
