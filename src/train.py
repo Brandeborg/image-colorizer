@@ -1,12 +1,14 @@
 import data_prep
 import eval
-import torch 
 import util
 import models
 
 import os
 from os import sep
+
+import torch 
 from torch.utils.data import DataLoader, Subset
+import torch.optim.lr_scheduler as lr_scheduler
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -27,6 +29,7 @@ def training_loop(ModelType, save_dir, num_epochs=3):
     train, _test, val = data_prep.create_datasets(device=device)
 
     # wrap train and val split in dataloader
+    # train = Subset(train, range(100))
     train_dataloader = DataLoader(train, batch_size=8, shuffle=False)
     val = Subset(val, range(50))
     eval_dataloader = DataLoader(val, batch_size=8, shuffle=False)
@@ -37,6 +40,7 @@ def training_loop(ModelType, save_dir, num_epochs=3):
     # https://pytorch.org/tutorials/beginner/pytorch_with_examples.html#pytorch-optim
     criterion = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    scheduler = lr_scheduler.LinearLR(optimizer, start_factor=1, end_factor=0.1, total_iters=num_epochs)
 
     # loops through batches, so input and target are really
     # lists of inputs and targets
@@ -48,11 +52,10 @@ def training_loop(ModelType, save_dir, num_epochs=3):
             batch_num += 1
             print(f"Batch {batch_num} / {len(train_dataloader)}, Epoch {epoch+1} / {num_epochs}", end="\r")
             
-            if batch_num % 2 == 0:
+            if batch_num % 500 == 0:
                print()
                metrics = eval.eval_model(model, eval_dataloader, criterion, device)
                print(metrics)
-               break
 
             # move data to GPU
             input, target = input.to(device), target.to(device)
@@ -61,15 +64,21 @@ def training_loop(ModelType, save_dir, num_epochs=3):
             # compute loss
             loss = criterion(target_pred, target)
 
+            # print loss
+            if batch_num % 100 == 0:
+                print({"training_loss": loss.item(), "learning_rate": scheduler.get_last_lr()[0]})
+
             # Zero gradients, perform a backward pass, and update the weights.
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
+        scheduler.step()
+
     util.save_model(model, save_dir)
 
 def main():
-    training_loop(models.CNNImageColorizerModel, save_dir=f"{MODELS_DIR}{sep}{CNN_MODEL}", num_epochs=1)
+    training_loop(models.CNNImageColorizerModel, save_dir=f"{MODELS_DIR}{sep}{CNN_MODEL}", num_epochs=3)
 
 if __name__ == "__main__":
     main()

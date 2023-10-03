@@ -61,7 +61,7 @@ def eval_model(model: Module, eval_dataloader: DataLoader, criterion, device: st
     # set model to eval mode
     model.eval()
 
-    metrics = {"eval_loss": 0, "eval_accuracy": 0}
+    metrics = {"avg_eval_loss": 0, "avg_eval_accuracy": 0}
 
     batch_num = 0
 
@@ -76,17 +76,17 @@ def eval_model(model: Module, eval_dataloader: DataLoader, criterion, device: st
             input, target = input.to(device), target.to(device)
             target_pred = model(input)
 
-            metrics["eval_loss"] += criterion(target_pred, target)
+            metrics["avg_eval_loss"] += criterion(target_pred, target)
             
             # accuracy function doesn't do batches right now, 
             # so loop through batch
             for sample_input, sample_target in zip(input, target):
                 sample_target_pred = model(torch.unsqueeze(sample_input, 0))
 
-                metrics["eval_accuracy"] += accuracy(sample_target_pred, sample_target)
+                metrics["avg_eval_accuracy"] += accuracy(sample_target_pred, sample_target)
 
-    metrics["eval_loss"] = metrics["eval_loss"].item() / len(eval_dataloader)
-    metrics["eval_accuracy"] = metrics["eval_accuracy"] / (len(eval_dataloader) * eval_dataloader.batch_size)
+    metrics["avg_eval_loss"] = metrics["avg_eval_loss"].item() / len(eval_dataloader)
+    metrics["avg_eval_accuracy"] = metrics["avg_eval_accuracy"] / (len(eval_dataloader) * eval_dataloader.batch_size)
 
     # back to training mode, in case the eval step was done between epochs
     model.train()
