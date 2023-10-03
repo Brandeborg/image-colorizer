@@ -106,7 +106,7 @@ def training_loop(ModelType, save_dir, num_epochs=3):
 
             # print loss
             if batch_num % 50 == 0:
-                print({"training_loss": loss.item(), "learning_rate": lr_scheduler.get_last_lr()[0]})
+                print({"training_loss": loss.item(), "learning_rate": scheduler.get_last_lr()[0]})
 
             # Zero gradients, perform a backward pass, and update the weights.
             optimizer.zero_grad()
