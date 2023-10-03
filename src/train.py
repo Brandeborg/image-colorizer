@@ -71,7 +71,7 @@ def training_loop(ModelType, save_dir, num_epochs=3):
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 
     # calculate training_steps and choose 5% warmup steps
-    num_training_steps = num_epochs * len(train)
+    num_training_steps = num_epochs * len(train_dataloader)
     num_warmup_steps = int(num_training_steps * 0.05)
 
     # assemble lambda function, which, given current_step during training, 
@@ -80,7 +80,7 @@ def training_loop(ModelType, save_dir, num_epochs=3):
     lr_lambda = partial(_get_linear_schedule_with_warmup_lr_lambda, 
                         num_warmup_steps=num_warmup_steps, 
                         num_training_steps=num_training_steps)
-    lr_scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda)
+    scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda)
 
     
     print("Training")
@@ -115,7 +115,7 @@ def training_loop(ModelType, save_dir, num_epochs=3):
 
             # change learning rate
             # (I assume this simply increases "current_step" and calls the lr lambda)
-            lr_scheduler.step()
+            scheduler.step()
 
         batch_num = 0
 
